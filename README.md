@@ -1,54 +1,98 @@
-# React + TypeScript + Vite
+Blueprint Visualization App
+This application allows you to visualize and interact with devices (anchors and tags) on a blueprint image. You can upload a blueprint, adjust the zoom level, set the origin, and toggle the visibility of devices. The app also supports dark mode and provides a boundary box for defining areas of interest.
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Features
+Blueprint Upload:
 
-Currently, two official plugins are available:
+Upload a blueprint image (JPEG, PNG, etc.) to visualize devices on it.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+The blueprint can be dragged around the canvas for better positioning.
 
-## Expanding the ESLint configuration
+Device Visualization:
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+Devices are displayed as circles on the canvas.
 
-```js
-export default tseslint.config({
-  extends: [
-    // Remove ...tseslint.configs.recommended and replace with this
-    ...tseslint.configs.recommendedTypeChecked,
-    // Alternatively, use this for stricter rules
-    ...tseslint.configs.strictTypeChecked,
-    // Optionally, add this for stylistic rules
-    ...tseslint.configs.stylisticTypeChecked,
-  ],
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
-```
+Anchors are shown in red, and tags are shown in blue.
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+Devices outside the boundary box are semi-transparent.
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+Boundary Box:
 
-export default tseslint.config({
-  plugins: {
-    // Add the react-x and react-dom plugins
-    'react-x': reactX,
-    'react-dom': reactDom,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended typescript rules
-    ...reactX.configs['recommended-typescript'].rules,
-    ...reactDom.configs.recommended.rules,
-  },
-})
-```
+A draggable and resizable green boundary box is provided to define areas of interest.
+
+Devices outside the boundary box are visually distinct.
+
+Zoom Control:
+
+Adjust the zoom level using a slider.
+
+Reset the zoom to the default level with a single button.
+
+Set Origin:
+
+Set the origin (0,0) based on the position of an anchor or the first device.
+
+Visibility Toggles:
+
+Toggle the visibility of anchors and tags independently.
+
+Dark Mode:
+
+Switch between light and dark themes for better visibility in different lighting conditions.
+
+Device Selection:
+
+Click on a device to view its details (ID, name, type, and position).
+
+Grid Lines:
+
+A grid is displayed on the canvas to help with positioning devices.
+
+How to Use
+Upload a Blueprint:
+
+Click the "Choose File" button in the Controls panel to upload a blueprint image.
+
+Interact with Devices:
+
+Drag devices (circles) to reposition them.
+
+Click on a device to view its details in the Controls panel.
+
+Adjust the Boundary Box:
+
+Drag the green boundary box to move it.
+
+Resize the box by dragging the green circles at the top-left or bottom-right corners.
+
+Set the Origin:
+
+Click the "Set Origin (0,0)" button to set the origin based on an anchor or the first device.
+
+Control Zoom:
+
+Use the slider to adjust the zoom level.
+
+Click "Reset Zoom" to return to the default zoom level.
+
+Toggle Visibility:
+
+Use the checkboxes in the Controls panel to show/hide anchors and tags.
+
+Switch Themes:
+
+Toggle the "Dark Mode" switch to change between light and dark themes.
+
+
+Project Structure
+
+src/
+├── components/
+│   ├── devicesdata.json          # Sample device data
+│   ├── BlueprintCanvas.jsx       # Main canvas component
+│   ├── FileUploader.jsx          # File upload component
+│   └── Controls.jsx             # Control panel component
+├── hooks/
+│   ├── useDeviceStore.js         # Zustand store for global state
+│   └── useLoadData.js            # Hook to load device data
+└── App.jsx                      # Main application component
