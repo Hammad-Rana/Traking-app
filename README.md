@@ -1,4 +1,4 @@
-Blueprint Visualization App
+Blueprint Visualization App #https://traking-app-bdd13.web.app/
 This application allows you to visualize and interact with devices (anchors and tags) on a blueprint image. You can upload a blueprint, adjust the zoom level, set the origin, and toggle the visibility of devices. The app also supports dark mode and provides a boundary box for defining areas of interest.
 
 Features
