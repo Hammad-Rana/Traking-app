@@ -16,8 +16,8 @@ const Controls = () => {
 
     const adjustedDevices = devices.map((device) => ({
       ...device,
-      x: device.x - originX,
-      y: device.y - originY,
+      x: 0,
+      y: 0,
     }));
 
     setDevices(adjustedDevices);
@@ -34,7 +34,7 @@ const Controls = () => {
       <Button variant="contained" color="primary" onClick={setOrigin} fullWidth>
         Set Origin (0,0)
       </Button>
-      <Tooltip title="Zoom Level">
+      {/* <Tooltip title="Zoom Level">
         <Slider
           value={zoomLevel}
           onChange={(e, value) => setZoomLevel(value)}
@@ -46,7 +46,7 @@ const Controls = () => {
       </Tooltip>
       <Button variant="contained" color="secondary" onClick={resetZoom} fullWidth>
         Reset Zoom
-      </Button>
+      </Button> */}
       <FormControlLabel control={<Switch checked={themeMode === "dark"} onChange={toggleTheme} />} label="Dark Mode" />
       <Divider sx={{ my: 2 }} />
       <Typography variant="h6">Visibility</Typography>
