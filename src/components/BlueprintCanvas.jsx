@@ -103,20 +103,51 @@ const BlueprintCanvas = () => {
     setStageY(-(mousePointTo.y - stage.getPointerPosition().y / newScale) * newScale);
   };
 
-  // Render grid lines
   const renderGrid = () => {
-    const gridSize = 50;
+    const gridSize = 50; // Size of each grid cell
     const gridLines = [];
-    for (let i = 0; i < canvasSize.width; i += gridSize) {
+  
+    // Get the current stage scale and position
+    const scale = stageScale;
+    const offsetX = stageX;
+    const offsetY = stageY;
+  
+    // Calculate the visible area of the canvas
+    const visibleWidth = canvasSize.width / scale;
+    const visibleHeight = canvasSize.height / scale;
+    const visibleXStart = -offsetX / scale;
+    const visibleYStart = -offsetY / scale;
+    const visibleXEnd = visibleXStart + visibleWidth;
+    const visibleYEnd = visibleYStart + visibleHeight;
+  
+    // Render vertical grid lines
+    const startX = Math.floor(visibleXStart / gridSize) * gridSize;
+    const endX = Math.ceil(visibleXEnd / gridSize) * gridSize;
+    for (let x = startX; x <= endX; x += gridSize) {
       gridLines.push(
-        <Line key={`vertical-${i}`} points={[i, 0, i, canvasSize.height]} stroke="#ddd" strokeWidth={1} />
+        <Line
+          key={`vertical-${x}`}
+          points={[x, visibleYStart, x, visibleYEnd]}
+          stroke="#ddd"
+          strokeWidth={1 / scale} // Adjust stroke width based on zoom
+        />
       );
     }
-    for (let j = 0; j < canvasSize.height; j += gridSize) {
+  
+    // Render horizontal grid lines
+    const startY = Math.floor(visibleYStart / gridSize) * gridSize;
+    const endY = Math.ceil(visibleYEnd / gridSize) * gridSize;
+    for (let y = startY; y <= endY; y += gridSize) {
       gridLines.push(
-        <Line key={`horizontal-${j}`} points={[0, j, canvasSize.width, j]} stroke="#ddd" strokeWidth={1} />
+        <Line
+          key={`horizontal-${y}`}
+          points={[visibleXStart, y, visibleXEnd, y]}
+          stroke="#ddd"
+          strokeWidth={1 / scale} // Adjust stroke width based on zoom
+        />
       );
     }
+  
     return gridLines;
   };
 
