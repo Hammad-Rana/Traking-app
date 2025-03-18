@@ -205,7 +205,8 @@ const BlueprintCanvas = () => {
           stroke="green"
           strokeWidth={2}
           dash={[4, 4]}
-          draggable
+          draggable={false} // Disable dragging
+          listening={false} 
           onDragMove={handleBoundaryDrag}
         />
 
