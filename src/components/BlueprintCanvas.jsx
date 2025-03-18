@@ -130,6 +130,26 @@ const BlueprintCanvas = () => {
     }
   }, [selectedId]);
 
+  // Handle clicks outside the image
+  useEffect(() => {
+    const handleStageClick = (e) => {
+      if (e.target === e.target.getStage()) {
+        setSelectedId(null);
+      }
+    };
+
+    const stage = imageRef.current?.getStage();
+    if (stage) {
+      stage.on('click', handleStageClick);
+    }
+
+    return () => {
+      if (stage) {
+        stage.off('click', handleStageClick);
+      }
+    };
+  }, []);
+
   return (
     <Stage
       width={canvasSize.width}
@@ -157,7 +177,9 @@ const BlueprintCanvas = () => {
               height={blueprint.height}
               draggable
               onDragMove={handleBlueprintDrag}
-              onClick={() => setSelectedId("blueprint")}
+              onClick={() => {
+                setSelectedId("blueprint");
+              }}
             />
             {selectedId === "blueprint" && (
               <Transformer
