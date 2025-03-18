@@ -106,45 +106,16 @@ const BlueprintCanvas = () => {
   const renderGrid = () => {
     const gridSize = 50; // Size of each grid cell
     const gridLines = [];
+    const numLines = 100;  
   
-    // Get the current stage scale and position
-    const scale = stageScale;
-    const offsetX = stageX;
-    const offsetY = stageY;
-  
-    // Calculate the visible area of the canvas
-    const visibleWidth = canvasSize.width / scale;
-    const visibleHeight = canvasSize.height / scale;
-    const visibleXStart = -offsetX / scale;
-    const visibleYStart = -offsetY / scale;
-    const visibleXEnd = visibleXStart + visibleWidth;
-    const visibleYEnd = visibleYStart + visibleHeight;
-  
-    // Render vertical grid lines
-    const startX = Math.floor(visibleXStart / gridSize) * gridSize;
-    const endX = Math.ceil(visibleXEnd / gridSize) * gridSize;
-    for (let x = startX; x <= endX; x += gridSize) {
+    for (let i = -numLines * gridSize; i <= numLines * gridSize; i += gridSize) {
       gridLines.push(
-        <Line
-          key={`vertical-${x}`}
-          points={[x, visibleYStart, x, visibleYEnd]}
-          stroke="#ddd"
-          strokeWidth={1 / scale} // Adjust stroke width based on zoom
-        />
+        <Line key={`vertical-${i}`} points={[i, -numLines * gridSize, i, numLines * gridSize]} stroke="#ddd" strokeWidth={1} />
       );
     }
-  
-    // Render horizontal grid lines
-    const startY = Math.floor(visibleYStart / gridSize) * gridSize;
-    const endY = Math.ceil(visibleYEnd / gridSize) * gridSize;
-    for (let y = startY; y <= endY; y += gridSize) {
+    for (let j = -numLines * gridSize; j <= numLines * gridSize; j += gridSize) {
       gridLines.push(
-        <Line
-          key={`horizontal-${y}`}
-          points={[visibleXStart, y, visibleXEnd, y]}
-          stroke="#ddd"
-          strokeWidth={1 / scale} // Adjust stroke width based on zoom
-        />
+        <Line key={`horizontal-${j}`} points={[-numLines * gridSize, j, numLines * gridSize, j]} stroke="#ddd" strokeWidth={1} />
       );
     }
   
