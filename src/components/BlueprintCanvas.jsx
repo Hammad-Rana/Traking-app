@@ -107,14 +107,16 @@ const BlueprintCanvas = () => {
   const renderGrid = () => {
     const gridSize = 50;
     const gridLines = [];
-    for (let i = 0; i < canvasSize.width; i += gridSize) {
+    const numLines = 100;  
+  
+    for (let i = -numLines * gridSize; i <= numLines * gridSize; i += gridSize) {
       gridLines.push(
-        <Line key={`vertical-${i}`} points={[i, 0, i, canvasSize.height]} stroke="#ddd" strokeWidth={1} />
+        <Line key={`vertical-${i}`} points={[i, -numLines * gridSize, i, numLines * gridSize]} stroke="#ddd" strokeWidth={1} />
       );
     }
-    for (let j = 0; j < canvasSize.height; j += gridSize) {
+    for (let j = -numLines * gridSize; j <= numLines * gridSize; j += gridSize) {
       gridLines.push(
-        <Line key={`horizontal-${j}`} points={[0, j, canvasSize.width, j]} stroke="#ddd" strokeWidth={1} />
+        <Line key={`horizontal-${j}`} points={[-numLines * gridSize, j, numLines * gridSize, j]} stroke="#ddd" strokeWidth={1} />
       );
     }
     return gridLines;
