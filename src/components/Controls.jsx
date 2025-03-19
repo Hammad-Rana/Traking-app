@@ -17,6 +17,7 @@ const Controls = () => {
     selectedDevice,
     themeMode,
     toggleTheme,
+    boundary
   } = useDeviceStore();
 
   const [endX, setEndX] = useState("");
@@ -32,14 +33,45 @@ const Controls = () => {
   }, [selectedDevice]);
 
   const setOrigin = () => {
-   // Find the reference device (device at (0, 0))
-   useLoadData();
+    if (!selectedDevice) return;
+  
+    const baseX = selectedDevice.x;
+    const baseY = selectedDevice.y;
+  
+    let boxSize = 4; // Controls the spacing for the box
+    let cols = Math.ceil(Math.sqrt(devices.filter(d => d.type === "anchor").length)); // Grid columns
+    let rows = Math.ceil(devices.filter(d => d.type === "anchor").length / cols); // Grid rows
+  
+    let usedPositions = new Set();
+    usedPositions.add(`${baseX.toFixed(2)},${baseY.toFixed(2)}`); // Ensure selectedDevice stays in place
+  
+    let index = 0;
+  
+    const generateBoxPosition = () => {
+      let x = baseX + (index % cols) * boxSize - (cols * boxSize) / 2;
+      let y = baseY + Math.floor(index / cols) * boxSize - (rows * boxSize) / 2;
+      index++;
+  
+      usedPositions.add(`${x.toFixed(2)},${y.toFixed(2)}`);
+      return { x, y };
+    };
+  
+    const updatedDevices = devices.map((device) => {
+      if (device.id === selectedDevice.id) {
+        return device; // Keep selectedDevice unchanged
+      }
+      if (device.type === "anchor") {
+        return {
+          ...device,
+          ...generateBoxPosition(),
+        };
+      }
+      return device;
+    });
+  
+    setDevices(updatedDevices);
   };
-
-  const resetZoom = () => {
-    setZoomLevel(1);
-  };
-console.log(endLocation,"endLocation")
+  
   const handleSetEndLocation = () => {
     if (!endX || !endY) return;
     setEndLocation({ x: parseFloat(endX), y: parseFloat(endY) });
@@ -50,7 +82,8 @@ console.log(endLocation,"endLocation")
       <Typography variant="h5" sx={{ fontWeight: "bold", mb: 2 }}>Controls</Typography>
       <FileUploader />
       <Button variant="contained" color="primary" onClick={setOrigin} fullWidth>
-        Set Origin (0,0)
+        Set Origin ({selectedDevice ? Number(selectedDevice.x).toFixed(2) : "0"},
+        {selectedDevice ? Number(selectedDevice.y).toFixed(2) : "0"})
       </Button>
       <FormControlLabel control={<Switch checked={themeMode === "dark"} onChange={toggleTheme} />} label="Dark Mode" />
       <Divider sx={{ my: 2 }} />

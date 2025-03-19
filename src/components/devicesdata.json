@@ -48,5 +48,35 @@
             },
             "topic": {"S": "leaps/1234/node/uplink/config/9e34"}
         }
+    },
+    {
+        "topic": "leaps/1234/node/uplink/config/9e35",
+        "payload": {
+            "createdAt": {"N": "1741835793650"},
+            "payload": {
+                "S": "{\"label\":\"ID9E35\",\"uwb_mode\":\"UWB_MODE_ACTIVE\",\"ble\":true,\"leds\":true,\"fw_update\":true,\"anchor\":{\"initiator\":false,\"location\":{\"x\":10,\"y\":10,\"z\":0,\"quality\":0},\"routing\":\"ROUTING_AUTO\"},\"timestamp\":\"1741835793281421\"}"
+            },
+            "topic": {"S": "leaps/1234/node/uplink/config/9e35"}
+        }
+    },
+    {
+        "topic": "leaps/1234/node/uplink/config/9e36",
+        "payload": {
+            "createdAt": {"N": "1741835793655"},
+            "payload": {
+                "S": "{\"label\":\"ID9E36\",\"uwb_mode\":\"UWB_MODE_ACTIVE\",\"ble\":true,\"leds\":true,\"fw_update\":true,\"anchor\":{\"initiator\":false,\"location\":{\"x\":15,\"y\":5,\"z\":0,\"quality\":0},\"routing\":\"ROUTING_AUTO\"},\"timestamp\":\"1741835793281421\"}"
+            },
+            "topic": {"S": "leaps/1234/node/uplink/config/9e36"}
+        }
+    },
+    {
+        "topic": "leaps/1234/node/uplink/config/9e37",
+        "payload": {
+            "createdAt": {"N": "1741835793660"},
+            "payload": {
+                "S": "{\"label\":\"ID9E37\",\"uwb_mode\":\"UWB_MODE_ACTIVE\",\"ble\":true,\"leds\":true,\"fw_update\":true,\"anchor\":{\"initiator\":false,\"location\":{\"x\":7,\"y\":12,\"z\":0,\"quality\":0},\"routing\":\"ROUTING_AUTO\"},\"timestamp\":\"1741835793281421\"}"
+            },
+            "topic": {"S": "leaps/1234/node/uplink/config/9e37"}
+        }
     }
 ]

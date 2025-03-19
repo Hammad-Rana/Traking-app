@@ -10,7 +10,6 @@ import {
   Group,
   Tag,
   Label,
-  Transformer,
 } from "react-konva";
 import useDeviceStore from "./hooks/useDeviceStore";
 import useLoadData from "./hooks/useLoadData";
@@ -39,9 +38,7 @@ const BlueprintCanvas = () => {
   const [stageScale, setStageScale] = useState(1);
   const [stageX, setStageX] = useState(0);
   const [stageY, setStageY] = useState(0);
-  const [selectedId, setSelectedId] = useState(null);
   const imageRef = useRef(null);
-  const transformerRef = useRef(null);
   const [tagImage, setTagImage] = useState(null);
   const [anchorImage, setAnchorImage] = useState(null);
   useLoadData();
@@ -63,10 +60,10 @@ const BlueprintCanvas = () => {
 
   // Handle blueprint drag
   const handleBlueprintDrag = (e) => {
-    setBlueprintPosition({
-      x: e.target.x(),
-      y: e.target.y(),
-    });
+    const newX = e.target.x();
+    const newY = e.target.y();
+    setBlueprintPosition({ x: newX, y: newY });
+    setBoundary({ ...boundary, x: newX, y: newY });
   };
 
   // Handle device drag
@@ -80,7 +77,10 @@ const BlueprintCanvas = () => {
 
   // Handle boundary drag
   const handleBoundaryDrag = (e) => {
-    setBoundary({ ...boundary, x: e.target.x(), y: e.target.y() });
+    const newX = e.target.x();
+    const newY = e.target.y();
+    setBoundary({ ...boundary, x: newX, y: newY });
+    setBlueprintPosition({ x: newX, y: newY });
   };
 
   // Handle boundary resize
@@ -98,7 +98,18 @@ const BlueprintCanvas = () => {
       newBoundary.height = y - boundary.y;
     }
 
+    setBlueprintPosition({
+      x: newBoundary.x,
+      y: newBoundary.y,
+    });
     setBoundary(newBoundary);
+
+    // Resize the image
+    if (imageRef.current) {
+      imageRef.current.width(newBoundary.width);
+      imageRef.current.height(newBoundary.height);
+      imageRef.current.getLayer().batchDraw();
+    }
   };
 
   // Handle zoom and pan
@@ -158,35 +169,6 @@ const BlueprintCanvas = () => {
     return gridLines;
   };
 
-  // Update transformer when blueprint is selected
-  useEffect(() => {
-    if (selectedId === "blueprint" && transformerRef.current) {
-      transformerRef.current.nodes([imageRef.current]);
-      transformerRef.current.getLayer().batchDraw();
-    }
-  }, [selectedId]);
-
-  // Handle clicks outside the image
-  useEffect(() => {
-    const handleStageClick = (e) => {
-      if (e.target === e.target.getStage()) {
-        setSelectedId(null);
-      }
-    };
-
-    const stage = imageRef.current?.getStage();
-    if (stage) {
-      stage.on("click", handleStageClick);
-    }
-
-    return () => {
-      if (stage) {
-        stage.off("click", handleStageClick);
-      }
-    };
-  }, []);
-console.log(devices,"devicesdevices")
-
   return (
     <Stage
       width={canvasSize.width}
@@ -204,33 +186,16 @@ console.log(devices,"devicesdevices")
 
         {/* Blueprint Image */}
         {blueprint && (
-          <>
-            <KonvaImage
-              ref={imageRef}
-              image={blueprint}
-              x={blueprintPosition.x}
-              y={blueprintPosition.y}
-              width={blueprint.width}
-              height={blueprint.height}
-              draggable
-              onDragMove={handleBlueprintDrag}
-              onClick={() => {
-                setSelectedId("blueprint");
-              }}
-            />
-            {selectedId === "blueprint" && (
-              <Transformer
-                ref={transformerRef}
-                boundBoxFunc={(oldBox, newBox) => {
-                  // Limit resizing to maintain aspect ratio
-                  if (newBox.width < 50 || newBox.height < 50) {
-                    return oldBox;
-                  }
-                  return newBox;
-                }}
-              />
-            )}
-          </>
+          <KonvaImage
+            ref={imageRef}
+            image={blueprint}
+            x={boundary.x}
+            y={boundary.y}
+            width={boundary.width}
+            height={boundary.height}
+            draggable
+            onDragMove={handleBlueprintDrag}
+          />
         )}
 
         {/* Boundary Box */}
@@ -281,8 +246,7 @@ console.log(devices,"devicesdevices")
                   x={device.x * 50}
                   y={device.y * 50}
                   onClick={() => {
-                    setSelectedDevice(device)
-                    setSelectedId(null)
+                    setSelectedDevice(device);
                   }}
                   onDragMove={(e) => handleDragMove(e, device.id)}
                 >
@@ -293,7 +257,6 @@ console.log(devices,"devicesdevices")
                     height={20}
                     image={device.type === "anchor" ? anchorImage : tagImage}
                     opacity={isOutside ? 0.3 : 1}
-                    
                     shadowColor={
                       selectedDevice?.id === device.id ? "yellow" : "black"
                     }
@@ -303,7 +266,7 @@ console.log(devices,"devicesdevices")
                   <Label x={10} y={-25}>
                     <Tag fill="gray" cornerRadius={5} opacity={0.8} />
                     <Text
-                    text={`${device.name}\n x:${Number(device.x).toFixed(2)} y:${Number(device.y).toFixed(2)}`}
+                      text={`${device.name}\n x:${Number(device.x).toFixed(2)} y:${Number(device.y).toFixed(2)}`}
                       fontSize={12}
                       fill="white"
                       padding={5}
