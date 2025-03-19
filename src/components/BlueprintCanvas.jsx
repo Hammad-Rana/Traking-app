@@ -1,5 +1,17 @@
 import React, { useState, useRef, useEffect } from "react";
-import { Stage, Layer, Image as KonvaImage, Circle, Text, Rect, Line, Transformer } from "react-konva";
+import {
+  Stage,
+  Layer,
+  Image as KonvaImage,
+  Circle,
+  Text,
+  Rect,
+  Line,
+  Group,
+  Tag,
+  Label,
+  Transformer,
+} from "react-konva";
 import useDeviceStore from "./hooks/useDeviceStore";
 import useLoadData from "./hooks/useLoadData";
 
@@ -61,7 +73,9 @@ const BlueprintCanvas = () => {
   const handleDragMove = (e, id) => {
     const newX = e.target.x() / 50;
     const newY = e.target.y() / 50;
-    setDevices(devices.map((d) => (d.id === id ? { ...d, x: newX, y: newY } : d)));
+    setDevices(
+      devices.map((d) => (d.id === id ? { ...d, x: newX, y: newY } : d))
+    );
   };
 
   // Handle boundary drag
@@ -99,55 +113,48 @@ const BlueprintCanvas = () => {
     };
     const newScale = e.evt.deltaY < 0 ? oldScale * scaleBy : oldScale / scaleBy;
     setStageScale(newScale);
-    setStageX(-(mousePointTo.x - stage.getPointerPosition().x / newScale) * newScale);
-    setStageY(-(mousePointTo.y - stage.getPointerPosition().y / newScale) * newScale);
+    setStageX(
+      -(mousePointTo.x - stage.getPointerPosition().x / newScale) * newScale
+    );
+    setStageY(
+      -(mousePointTo.y - stage.getPointerPosition().y / newScale) * newScale
+    );
   };
 
   const renderGrid = () => {
     const gridSize = 50; // Size of each grid cell
     const gridLines = [];
-  
-    // Get the current stage scale and position
-    const scale = stageScale;
-    const offsetX = stageX;
-    const offsetY = stageY;
-  
-    // Calculate the visible area of the canvas
-    const visibleWidth = canvasSize.width / scale;
-    const visibleHeight = canvasSize.height / scale;
-    const visibleXStart = -offsetX / scale;
-    const visibleYStart = -offsetY / scale;
-    const visibleXEnd = visibleXStart + visibleWidth;
-    const visibleYEnd = visibleYStart + visibleHeight;
-  
-    // Render vertical grid lines
-    const startX = Math.floor(visibleXStart / gridSize) * gridSize;
-    const endX = Math.ceil(visibleXEnd / gridSize) * gridSize;
-    for (let x = startX; x <= endX; x += gridSize) {
+    const numLines = 100;
+
+    for (
+      let i = -numLines * gridSize;
+      i <= numLines * gridSize;
+      i += gridSize
+    ) {
       gridLines.push(
         <Line
-          key={`vertical-${x}`}
-          points={[x, visibleYStart, x, visibleYEnd]}
+          key={`vertical-${i}`}
+          points={[i, -numLines * gridSize, i, numLines * gridSize]}
           stroke="#ddd"
-          strokeWidth={1 / scale} // Adjust stroke width based on zoom
+          strokeWidth={1}
         />
       );
     }
-  
-    // Render horizontal grid lines
-    const startY = Math.floor(visibleYStart / gridSize) * gridSize;
-    const endY = Math.ceil(visibleYEnd / gridSize) * gridSize;
-    for (let y = startY; y <= endY; y += gridSize) {
+    for (
+      let j = -numLines * gridSize;
+      j <= numLines * gridSize;
+      j += gridSize
+    ) {
       gridLines.push(
         <Line
-          key={`horizontal-${y}`}
-          points={[visibleXStart, y, visibleXEnd, y]}
+          key={`horizontal-${j}`}
+          points={[-numLines * gridSize, j, numLines * gridSize, j]}
           stroke="#ddd"
-          strokeWidth={1 / scale} // Adjust stroke width based on zoom
+          strokeWidth={1}
         />
       );
     }
-  
+
     return gridLines;
   };
 
@@ -169,15 +176,16 @@ const BlueprintCanvas = () => {
 
     const stage = imageRef.current?.getStage();
     if (stage) {
-      stage.on('click', handleStageClick);
+      stage.on("click", handleStageClick);
     }
 
     return () => {
       if (stage) {
-        stage.off('click', handleStageClick);
+        stage.off("click", handleStageClick);
       }
     };
   }, []);
+console.log(devices,"devicesdevices")
 
   return (
     <Stage
@@ -235,17 +243,30 @@ const BlueprintCanvas = () => {
           strokeWidth={2}
           dash={[4, 4]}
           draggable={false} // Disable dragging
-          listening={false} 
+          listening={false}
           onDragMove={handleBoundaryDrag}
         />
 
         {/* Resize Handles */}
-        <Circle x={boundary.x} y={boundary.y} radius={6} fill="green" draggable onDragMove={(e) => handleBoundaryResize(e, "topLeft")} />
-        <Circle x={boundary.x + boundary.width} y={boundary.y + boundary.height} radius={6} fill="green" draggable onDragMove={(e) => handleBoundaryResize(e, "bottomRight")} />
+        <Circle
+          x={boundary.x}
+          y={boundary.y}
+          radius={6}
+          fill="green"
+          draggable
+          onDragMove={(e) => handleBoundaryResize(e, "topLeft")}
+        />
+        <Circle
+          x={boundary.x + boundary.width}
+          y={boundary.y + boundary.height}
+          radius={6}
+          fill="green"
+          draggable
+          onDragMove={(e) => handleBoundaryResize(e, "bottomRight")}
+        />
 
         {/* Devices */}
-        {devices
-          .filter((device) => visibility[device.type])
+        {devices && devices?.filter((device) => visibility[device.type])
           .map((device) => {
             const isOutside =
               device.x * 50 < boundary.x ||
@@ -255,33 +276,41 @@ const BlueprintCanvas = () => {
 
             return (
               <React.Fragment key={device.id}>
-                <KonvaImage
-                  x={device.x * 50 - 10} // Adjust position to center the icon
-                  y={device.y * 50 - 10} // Adjust position to center the icon
-                  width={20}
-                  height={20}
-                  image={device.type === "anchor" ? anchorImage : tagImage}
-                  opacity={isOutside ? 0.3 : 1}
-                  // draggable
+                <Group
+                  draggable
+                  x={device.x * 50}
+                  y={device.y * 50}
+                  onClick={() => {
+                    setSelectedDevice(device)
+                    setSelectedId(null)
+                  }}
                   onDragMove={(e) => handleDragMove(e, device.id)}
-                  onMouseEnter={() => setHoveredDevice(device)}
-                  onMouseLeave={() => setHoveredDevice(null)}
-                  onClick={() => setSelectedDevice(device)}
-                  shadowColor={selectedDevice?.id === device.id ? "yellow" : "black"}
-                  shadowBlur={10}
-                />
-                {hoveredDevice?.id === device.id && (
-                  <Text
-                    x={device.x * 50 + 15}
-                    y={device.y * 50 - 20}
-                    text={`${device.name}\n(${device.x}, ${device.y})`}
-                    fontSize={12}
-                    fill="black"
-                    padding={5}
-                    align="center"
-                    backgroundFill="white"
+                >
+                  <KonvaImage
+                    x={-10} // Center relative to the group
+                    y={-10}
+                    width={20}
+                    height={20}
+                    image={device.type === "anchor" ? anchorImage : tagImage}
+                    opacity={isOutside ? 0.3 : 1}
+                    
+                    shadowColor={
+                      selectedDevice?.id === device.id ? "yellow" : "black"
+                    }
+                    shadowBlur={10}
                   />
-                )}
+
+                  <Label x={10} y={-25}>
+                    <Tag fill="gray" cornerRadius={5} opacity={0.8} />
+                    <Text
+                    text={`${device.name}\n x:${Number(device.x).toFixed(2)} y:${Number(device.y).toFixed(2)}`}
+                      fontSize={12}
+                      fill="white"
+                      padding={5}
+                      align="left"
+                    />
+                  </Label>
+                </Group>
               </React.Fragment>
             );
           })}

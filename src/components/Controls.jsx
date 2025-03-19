@@ -1,30 +1,48 @@
-import React from "react";
-import { Button, Box, Typography, Container, FormControlLabel, Checkbox, Slider, Tooltip, Switch, Paper, Divider } from "@mui/material";
+import React, { useState, useEffect } from "react";
+import { Button, Box, Typography, FormControlLabel, Checkbox, Switch, Divider, TextField } from "@mui/material";
 import useDeviceStore from "./hooks/useDeviceStore";
 import FileUploader from "./FileUploader";
+import useLoadData from "./hooks/useLoadData";
 
 const Controls = () => {
-  const { zoomLevel, setZoomLevel, toggleVisibility, visibility, devices, setDevices, selectedDevice, themeMode, toggleTheme } = useDeviceStore();
+  const {
+    endLocation,
+    setEndLocation,
+    moveTagToEndLocation,
+    setZoomLevel,
+    toggleVisibility,
+    visibility,
+    devices,
+    setDevices,
+    selectedDevice,
+    themeMode,
+    toggleTheme,
+  } = useDeviceStore();
+
+  const [endX, setEndX] = useState("");
+  const [endY, setEndY] = useState("");
+
+  // Automatically set the initial position when selectedDevice changes
+  useEffect(() => {
+    if (selectedDevice) {
+      // Set the initial position of the selected device
+      setEndX(selectedDevice.x.toString());
+      setEndY(selectedDevice.y.toString());
+    }
+  }, [selectedDevice]);
 
   const setOrigin = () => {
-    if (devices.length === 0) return;
-
-    const originDevice = devices.find((d) => d.type === "anchor") || devices[0];
-    if (!originDevice) return;
-
-    const { x: originX, y: originY } = originDevice;
-
-    const adjustedDevices = devices.map((device) => ({
-      ...device,
-      x: 0,
-      y: 0,
-    }));
-
-    setDevices(adjustedDevices);
+   // Find the reference device (device at (0, 0))
+   useLoadData();
   };
 
   const resetZoom = () => {
     setZoomLevel(1);
+  };
+console.log(endLocation,"endLocation")
+  const handleSetEndLocation = () => {
+    if (!endX || !endY) return;
+    setEndLocation({ x: parseFloat(endX), y: parseFloat(endY) });
   };
 
   return (
@@ -34,19 +52,6 @@ const Controls = () => {
       <Button variant="contained" color="primary" onClick={setOrigin} fullWidth>
         Set Origin (0,0)
       </Button>
-      {/* <Tooltip title="Zoom Level">
-        <Slider
-          value={zoomLevel}
-          onChange={(e, value) => setZoomLevel(value)}
-          min={0.5}
-          max={2}
-          step={0.1}
-          valueLabelDisplay="auto"
-        />
-      </Tooltip>
-      <Button variant="contained" color="secondary" onClick={resetZoom} fullWidth>
-        Reset Zoom
-      </Button> */}
       <FormControlLabel control={<Switch checked={themeMode === "dark"} onChange={toggleTheme} />} label="Dark Mode" />
       <Divider sx={{ my: 2 }} />
       <Typography variant="h6">Visibility</Typography>
@@ -60,6 +65,28 @@ const Controls = () => {
           <Typography>Name: {selectedDevice.name}</Typography>
           <Typography>Type: {selectedDevice.type}</Typography>
           <Typography>Position: ({selectedDevice.x}, {selectedDevice.y})</Typography>
+          <TextField
+            label="End X"
+            type="number"
+            value={endX}
+            onChange={(e) => setEndX(e.target.value)}
+            fullWidth
+            sx={{ mt: 2 }}
+          />
+          <TextField
+            label="End Y"
+            type="number"
+            value={endY}
+            onChange={(e) => setEndY(e.target.value)}
+            fullWidth
+            sx={{ mt: 2 }}
+          />
+          <Button variant="contained" color="primary" onClick={handleSetEndLocation} fullWidth sx={{ mt: 2 }}>
+            Set End Location
+          </Button>
+          <Button variant="contained" color="secondary" onClick={moveTagToEndLocation} fullWidth sx={{ mt: 2 }}>
+            Move Tag to End Location
+          </Button>
         </Box>
       )}
     </Box>

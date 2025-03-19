@@ -4,7 +4,7 @@
         "payload": {
             "createdAt": {"N": "1741835841757"},
             "payload": {
-                "S": "{\"label\":\"Oxygen\",\"uwb_mode\":\"UWB_MODE_ACTIVE\",\"ble\":true,\"leds\":true,\"fw_update\":true,\"tag\":{\"location_engine\":true,\"low_power\":false,\"stationary_detection\":true,\"update_rate_nominal\":1,\"update_rate_stationary\":50,\"reference_location\":{\"x\":\"0\",\"y\":\"0\",\"z\":\"NaN\",\"quality\":100}},\"timestamp\":\"1741835841610313\"}"
+                "S": "{\"label\":\"Oxygen\",\"uwb_mode\":\"UWB_MODE_ACTIVE\",\"ble\":true,\"leds\":true,\"fw_update\":true,\"tag\":{\"location_engine\":true,\"low_power\":false,\"stationary_detection\":true,\"update_rate_nominal\":1,\"update_rate_stationary\":50,\"reference_location\":{\"x\":0,\"y\":0,\"z\":\"NaN\",\"quality\":100}},\"timestamp\":\"1741835841610313\"}"
             },
             "topic": {"S": "leaps/1234/node/uplink/config/9e32"}
         }
