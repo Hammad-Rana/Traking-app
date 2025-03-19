@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Button, Box, Typography, FormControlLabel, Checkbox, Switch, Divider, TextField } from "@mui/material";
+import { Button, Box, Typography, FormControlLabel, Checkbox, Switch, Divider, TextField, Slider } from "@mui/material";
 import useDeviceStore from "./hooks/useDeviceStore";
 import FileUploader from "./FileUploader";
 import useLoadData from "./hooks/useLoadData";
@@ -22,6 +22,7 @@ const Controls = () => {
 
   const [endX, setEndX] = useState("");
   const [endY, setEndY] = useState("");
+  const [boxSize, setBoxSize] = useState(4); // Initial box size
 
   // Automatically set the initial position when selectedDevice changes
   useEffect(() => {
@@ -32,13 +33,12 @@ const Controls = () => {
     }
   }, [selectedDevice]);
 
-  const setOrigin = () => {
+  const setOrigin = (newBoxSize = boxSize) => {
     if (!selectedDevice) return;
   
     const baseX = selectedDevice.x;
     const baseY = selectedDevice.y;
   
-    let boxSize = 4; // Controls the spacing for the box
     let cols = Math.ceil(Math.sqrt(devices.filter(d => d.type === "anchor").length)); // Grid columns
     let rows = Math.ceil(devices.filter(d => d.type === "anchor").length / cols); // Grid rows
   
@@ -48,8 +48,8 @@ const Controls = () => {
     let index = 0;
   
     const generateBoxPosition = () => {
-      let x = baseX + (index % cols) * boxSize - (cols * boxSize) / 2;
-      let y = baseY + Math.floor(index / cols) * boxSize - (rows * boxSize) / 2;
+      let x = baseX + (index % cols) * newBoxSize - (cols * newBoxSize) / 2;
+      let y = baseY + Math.floor(index / cols) * newBoxSize - (rows * newBoxSize) / 2;
       index++;
   
       usedPositions.add(`${x.toFixed(2)},${y.toFixed(2)}`);
@@ -71,7 +71,12 @@ const Controls = () => {
   
     setDevices(updatedDevices);
   };
-  
+
+  const handleBoxSizeChange = (event, newValue) => {
+    setBoxSize(newValue);
+    setOrigin(newValue); // Update the positions immediately when the slider changes
+  };
+
   const handleSetEndLocation = () => {
     if (!endX || !endY) return;
     setEndLocation({ x: parseFloat(endX), y: parseFloat(endY) });
@@ -81,10 +86,20 @@ const Controls = () => {
     <Box sx={{ display: "flex", flexDirection: "column", gap: 2, p: 2, width: "25%", height: "100vh", overflowY: "auto" }}>
       <Typography variant="h5" sx={{ fontWeight: "bold", mb: 2 }}>Controls</Typography>
       <FileUploader />
-      <Button variant="contained" color="primary" onClick={setOrigin} fullWidth>
+      <Button variant="contained" color="primary" onClick={() => setOrigin()} fullWidth>
         Set Origin ({selectedDevice ? Number(selectedDevice.x).toFixed(2) : "0"},
         {selectedDevice ? Number(selectedDevice.y).toFixed(2) : "0"})
       </Button>
+      <Typography variant="h6" sx={{ mt: 2 }}>Anchor Spacing</Typography>
+      <Slider
+        value={boxSize}
+        onChange={handleBoxSizeChange}
+        aria-labelledby="box-size-slider"
+        valueLabelDisplay="auto"
+        min={1}
+        max={10}
+        step={0.5}
+      />
       <FormControlLabel control={<Switch checked={themeMode === "dark"} onChange={toggleTheme} />} label="Dark Mode" />
       <Divider sx={{ my: 2 }} />
       <Typography variant="h6">Visibility</Typography>
