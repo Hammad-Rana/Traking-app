@@ -32,7 +32,6 @@ const Controls = () => {
       setEndY(selectedDevice.y.toString());
     }
   }, [selectedDevice]);
-
   const setOrigin = (newBoxSize = boxSize) => {
     if (!selectedDevice) return;
   
@@ -48,9 +47,12 @@ const Controls = () => {
     let index = 0;
   
     const generateBoxPosition = () => {
-      let x = baseX + (index % cols) * newBoxSize - (cols * newBoxSize) / 2;
-      let y = baseY + Math.floor(index / cols) * newBoxSize - (rows * newBoxSize) / 2;
-      index++;
+      let x, y;
+      do {
+        x = baseX + (index % cols) * newBoxSize; // Move to the right
+        y = baseY + Math.floor(index / cols) * newBoxSize - (rows * newBoxSize) / 2; // Keep vertical centering
+        index++;
+      } while (usedPositions.has(`${x.toFixed(2)},${y.toFixed(2)}`)); // Ensure unique position
   
       usedPositions.add(`${x.toFixed(2)},${y.toFixed(2)}`);
       return { x, y };
@@ -71,6 +73,8 @@ const Controls = () => {
   
     setDevices(updatedDevices);
   };
+  
+  
 
   const handleBoxSizeChange = (event, newValue) => {
     setBoxSize(newValue);
