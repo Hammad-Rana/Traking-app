@@ -62,8 +62,21 @@ const BlueprintCanvas = () => {
   const handleBlueprintDrag = (e) => {
     const newX = e.target.x();
     const newY = e.target.y();
-    setBlueprintPosition({ x: newX, y: newY });
+    const deltaX = newX - boundary.x;
+    const deltaY = newY - boundary.y;
+
+    // Update boundary position
     setBoundary({ ...boundary, x: newX, y: newY });
+    setBlueprintPosition({ x: newX, y: newY });
+
+    // Update device positions
+    setDevices(
+      devices.map((device) => ({
+        ...device,
+        x: device.x + deltaX / 50,
+        y: device.y + deltaY / 50,
+      }))
+    );
   };
 
   // Handle device drag
@@ -79,8 +92,21 @@ const BlueprintCanvas = () => {
   const handleBoundaryDrag = (e) => {
     const newX = e.target.x();
     const newY = e.target.y();
+    const deltaX = newX - boundary.x;
+    const deltaY = newY - boundary.y;
+
+    // Update boundary position
     setBoundary({ ...boundary, x: newX, y: newY });
     setBlueprintPosition({ x: newX, y: newY });
+
+    // Update device positions
+    setDevices(
+      devices.map((device) => ({
+        ...device,
+        x: device.x + deltaX / 50,
+        y: device.y + deltaY / 50,
+      }))
+    );
   };
 
   // Handle boundary resize
@@ -98,11 +124,9 @@ const BlueprintCanvas = () => {
       newBoundary.height = y - boundary.y;
     }
 
-    setBlueprintPosition({
-      x: newBoundary.x,
-      y: newBoundary.y,
-    });
+    // Update boundary position and size
     setBoundary(newBoundary);
+    setBlueprintPosition({ x: newBoundary.x, y: newBoundary.y });
 
     // Resize the image
     if (imageRef.current) {
@@ -110,6 +134,19 @@ const BlueprintCanvas = () => {
       imageRef.current.height(newBoundary.height);
       imageRef.current.getLayer().batchDraw();
     }
+
+    // Calculate scaling factors for devices
+    const widthScale = newBoundary.width / boundary.width;
+    const heightScale = newBoundary.height / boundary.height;
+
+    // Update device positions based on the new boundary size
+    setDevices(
+      devices.map((device) => ({
+        ...device,
+        x: device.x * widthScale,
+        y: device.y * heightScale,
+      }))
+    );
   };
 
   // Handle zoom and pan
@@ -123,6 +160,8 @@ const BlueprintCanvas = () => {
       y: stage.getPointerPosition().y / oldScale - stage.y() / oldScale,
     };
     const newScale = e.evt.deltaY < 0 ? oldScale * scaleBy : oldScale / scaleBy;
+
+    // Update stage scale and position
     setStageScale(newScale);
     setStageX(
       -(mousePointTo.x - stage.getPointerPosition().x / newScale) * newScale
@@ -195,6 +234,8 @@ const BlueprintCanvas = () => {
             height={boundary.height}
             draggable
             onDragMove={handleBlueprintDrag}
+            scaleX={stageScale}
+            scaleY={stageScale}
           />
         )}
 
@@ -210,6 +251,8 @@ const BlueprintCanvas = () => {
           draggable={false} // Disable dragging
           listening={false}
           onDragMove={handleBoundaryDrag}
+          scaleX={stageScale}
+          scaleY={stageScale}
         />
 
         {/* Resize Handles */}
@@ -220,6 +263,8 @@ const BlueprintCanvas = () => {
           fill="green"
           draggable
           onDragMove={(e) => handleBoundaryResize(e, "topLeft")}
+          scaleX={stageScale}
+          scaleY={stageScale}
         />
         <Circle
           x={boundary.x + boundary.width}
@@ -228,55 +273,63 @@ const BlueprintCanvas = () => {
           fill="green"
           draggable
           onDragMove={(e) => handleBoundaryResize(e, "bottomRight")}
+          scaleX={stageScale}
+          scaleY={stageScale}
         />
 
         {/* Devices */}
-        {devices && devices?.filter((device) => visibility[device.type])
-          .map((device) => {
-            const isOutside =
-              device.x * 50 < boundary.x ||
-              device.y * 50 < boundary.y ||
-              device.x * 50 > boundary.x + boundary.width ||
-              device.y * 50 > boundary.y + boundary.height;
+        {devices &&
+          devices
+            .filter((device) => visibility[device.type])
+            .map((device) => {
+              const isOutside =
+                device.x * 50 < boundary.x ||
+                device.y * 50 < boundary.y ||
+                device.x * 50 > boundary.x + boundary.width ||
+                device.y * 50 > boundary.y + boundary.height;
 
-            return (
-              <React.Fragment key={device.id}>
-                <Group
-                  draggable
-                  x={device.x * 50}
-                  y={device.y * 50}
-                  onClick={() => {
-                    setSelectedDevice(device);
-                  }}
-                  onDragMove={(e) => handleDragMove(e, device.id)}
-                >
-                  <KonvaImage
-                    x={-10} // Center relative to the group
-                    y={-10}
-                    width={20}
-                    height={20}
-                    image={device.type === "anchor" ? anchorImage : tagImage}
-                    opacity={isOutside ? 0.3 : 1}
-                    shadowColor={
-                      selectedDevice?.id === device.id ? "yellow" : "black"
-                    }
-                    shadowBlur={10}
-                  />
-
-                  <Label x={10} y={-25}>
-                    <Tag fill="gray" cornerRadius={5} opacity={0.8} />
-                    <Text
-                      text={`${device.name}\n x:${Number(device.x).toFixed(2)} y:${Number(device.y).toFixed(2)}`}
-                      fontSize={12}
-                      fill="white"
-                      padding={5}
-                      align="left"
+              return (
+                <React.Fragment key={device.id}>
+                  <Group
+                    draggable
+                    x={device.x * 50 * stageScale}
+                    y={device.y * 50 * stageScale}
+                    onClick={() => {
+                      setSelectedDevice(device);
+                    }}
+                    onDragMove={(e) => handleDragMove(e, device.id)}
+                    scaleX={stageScale}
+                    scaleY={stageScale}
+                  >
+                    <KonvaImage
+                      x={-10} // Center relative to the group
+                      y={-10}
+                      width={20}
+                      height={20}
+                      image={device.type === "anchor" ? anchorImage : tagImage}
+                      opacity={isOutside ? 0.3 : 1}
+                      shadowColor={
+                        selectedDevice?.id === device.id ? "yellow" : "black"
+                      }
+                      shadowBlur={10}
                     />
-                  </Label>
-                </Group>
-              </React.Fragment>
-            );
-          })}
+
+                    <Label x={10} y={-25}>
+                      <Tag fill="gray" cornerRadius={5} opacity={0.8} />
+                      <Text
+                        text={`${device.name}\n x:${Number(device.x).toFixed(
+                          2
+                        )} y:${Number(device.y).toFixed(2)}`}
+                        fontSize={12}
+                        fill="white"
+                        padding={5}
+                        align="left"
+                      />
+                    </Label>
+                  </Group>
+                </React.Fragment>
+              );
+            })}
       </Layer>
     </Stage>
   );
