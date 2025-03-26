@@ -64,13 +64,13 @@ const BlueprintCanvas = () => {
     setBoundary({ ...boundary, x: newX, y: newY });
     setBlueprintPosition({ x: newX, y: newY });
 
-    setDevices(
-      devices.map((device) => ({
-        ...device,
-        x: device.x + deltaX / 50,
-        y: device.y + deltaY / 50,
-      }))
-    );
+    // setDevices(
+    //   devices.map((device) => ({
+    //     ...device,
+    //     x: device.x + deltaX / 50,
+    //     y: device.y + deltaY / 50,
+    //   }))
+    // );
   };
 
   // Handle device drag
@@ -136,13 +136,13 @@ const BlueprintCanvas = () => {
     const widthScale = newBoundary.width / boundary.width;
     const heightScale = newBoundary.height / boundary.height;
   
-    setDevices(
-      devices.map((device) => ({
-        ...device,
-        x: device.x * widthScale,
-        y: device.y * heightScale,
-      }))
-    );
+    // setDevices(
+    //   devices.map((device) => ({
+    //     ...device,
+    //     x: device.x * widthScale,
+    //     y: device.y * heightScale,
+    //   }))
+    // );
   };
 
   // Handle zoom and pan
