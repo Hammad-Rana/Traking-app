@@ -105,29 +105,37 @@ const BlueprintCanvas = () => {
   const handleBoundaryResize = (e, corner) => {
     const { x, y } = e.target.position();
     const newBoundary = { ...boundary };
-
+  
     if (corner === "topLeft") {
-      newBoundary.x = x;
-      newBoundary.y = y;
       newBoundary.width += boundary.x - x;
       newBoundary.height += boundary.y - y;
+      newBoundary.x = x;
+      newBoundary.y = y;
+    } else if (corner === "topRight") {
+      newBoundary.width = x - boundary.x;
+      newBoundary.height += boundary.y - y;
+      newBoundary.y = y;
+    } else if (corner === "bottomLeft") {
+      newBoundary.width += boundary.x - x;
+      newBoundary.height = y - boundary.y;
+      newBoundary.x = x;
     } else if (corner === "bottomRight") {
       newBoundary.width = x - boundary.x;
       newBoundary.height = y - boundary.y;
     }
-
+  
     setBoundary(newBoundary);
     setBlueprintPosition({ x: newBoundary.x, y: newBoundary.y });
-
+  
     if (imageRef.current) {
       imageRef.current.width(newBoundary.width);
       imageRef.current.height(newBoundary.height);
       imageRef.current.getLayer().batchDraw();
     }
-
+  
     const widthScale = newBoundary.width / boundary.width;
     const heightScale = newBoundary.height / boundary.height;
-
+  
     setDevices(
       devices.map((device) => ({
         ...device,
@@ -217,7 +225,7 @@ const BlueprintCanvas = () => {
         )}
 
         {/* Boundary Box */}
-        <Rect
+        {/* <Rect
           x={boundary.x}
           y={boundary.y}
           width={boundary.width}
@@ -228,25 +236,42 @@ const BlueprintCanvas = () => {
           draggable={false}
           listening={false}
           onDragMove={handleBoundaryDrag}
-        />
+        /> */}
 
         {/* Resize Handles - now properly scaled */}
-        <Circle
-          x={boundary.x}
-          y={boundary.y}
-          radius={6 / stageScale}
-          fill="green"
-          draggable
-          onDragMove={(e) => handleBoundaryResize(e, "topLeft")}
-        />
-        <Circle
-          x={boundary.x + boundary.width}
-          y={boundary.y + boundary.height}
-          radius={6 / stageScale}
-          fill="green"
-          draggable
-          onDragMove={(e) => handleBoundaryResize(e, "bottomRight")}
-        />
+     {/* Resize Handles - now with 4 corners */}
+<Circle
+  x={boundary.x}
+  y={boundary.y}
+  radius={6 / stageScale}
+  fill="green"
+  draggable
+  onDragMove={(e) => handleBoundaryResize(e, "topLeft")}
+/>
+<Circle
+  x={boundary.x + boundary.width}
+  y={boundary.y}
+  radius={6 / stageScale}
+  fill="green"
+  draggable
+  onDragMove={(e) => handleBoundaryResize(e, "topRight")}
+/>
+<Circle
+  x={boundary.x + boundary.width}
+  y={boundary.y + boundary.height}
+  radius={6 / stageScale}
+  fill="green"
+  draggable
+  onDragMove={(e) => handleBoundaryResize(e, "bottomRight")}
+/>
+<Circle
+  x={boundary.x}
+  y={boundary.y + boundary.height}
+  radius={6 / stageScale}
+  fill="green"
+  draggable
+  onDragMove={(e) => handleBoundaryResize(e, "bottomLeft")}
+/>
 
         {/* Devices */}
         {devices &&
