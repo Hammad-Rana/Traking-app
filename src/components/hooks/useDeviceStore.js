@@ -10,7 +10,7 @@ const useDeviceStore = create((set, get) => ({
   canvasSize: { width: window.innerWidth * 0.75, height: window.innerHeight },
   zoomLevel: 1,
   setZoomLevel: (level) => set({ zoomLevel: level }),
-  visibility: { anchor: true, tag: true },
+  visibility: { anchor: true, tag: true, device: true },
   toggleVisibility: (type) => set((state) => ({
     visibility: { ...state.visibility, [type]: !state.visibility[type] },
   })),

@@ -12,9 +12,6 @@ import {
   Label,
 } from "react-konva";
 import useDeviceStore from "./hooks/useDeviceStore";
-import useLoadData from "./hooks/useLoadData";
-
-// Import your icons
 import tagIcon from "./../assets/anchor.png";
 import anchorIcon from "./../assets/tag.png";
 
@@ -41,7 +38,6 @@ const BlueprintCanvas = () => {
   const imageRef = useRef(null);
   const [tagImage, setTagImage] = useState(null);
   const [anchorImage, setAnchorImage] = useState(null);
-  useLoadData();
 
   // Load the icons
   useEffect(() => {
@@ -65,11 +61,9 @@ const BlueprintCanvas = () => {
     const deltaX = newX - boundary.x;
     const deltaY = newY - boundary.y;
 
-    // Update boundary position
     setBoundary({ ...boundary, x: newX, y: newY });
     setBlueprintPosition({ x: newX, y: newY });
 
-    // Update device positions
     setDevices(
       devices.map((device) => ({
         ...device,
@@ -95,11 +89,9 @@ const BlueprintCanvas = () => {
     const deltaX = newX - boundary.x;
     const deltaY = newY - boundary.y;
 
-    // Update boundary position
     setBoundary({ ...boundary, x: newX, y: newY });
     setBlueprintPosition({ x: newX, y: newY });
 
-    // Update device positions
     setDevices(
       devices.map((device) => ({
         ...device,
@@ -124,22 +116,18 @@ const BlueprintCanvas = () => {
       newBoundary.height = y - boundary.y;
     }
 
-    // Update boundary position and size
     setBoundary(newBoundary);
     setBlueprintPosition({ x: newBoundary.x, y: newBoundary.y });
 
-    // Resize the image
     if (imageRef.current) {
       imageRef.current.width(newBoundary.width);
       imageRef.current.height(newBoundary.height);
       imageRef.current.getLayer().batchDraw();
     }
 
-    // Calculate scaling factors for devices
     const widthScale = newBoundary.width / boundary.width;
     const heightScale = newBoundary.height / boundary.height;
 
-    // Update device positions based on the new boundary size
     setDevices(
       devices.map((device) => ({
         ...device,
@@ -161,7 +149,6 @@ const BlueprintCanvas = () => {
     };
     const newScale = e.evt.deltaY < 0 ? oldScale * scaleBy : oldScale / scaleBy;
 
-    // Update stage scale and position
     setStageScale(newScale);
     setStageX(
       -(mousePointTo.x - stage.getPointerPosition().x / newScale) * newScale
@@ -172,35 +159,27 @@ const BlueprintCanvas = () => {
   };
 
   const renderGrid = () => {
-    const gridSize = 50; // Size of each grid cell
+    const gridSize = 50;
     const gridLines = [];
     const numLines = 100;
 
-    for (
-      let i = -numLines * gridSize;
-      i <= numLines * gridSize;
-      i += gridSize
-    ) {
+    for (let i = -numLines * gridSize; i <= numLines * gridSize; i += gridSize) {
       gridLines.push(
         <Line
           key={`vertical-${i}`}
           points={[i, -numLines * gridSize, i, numLines * gridSize]}
           stroke="#ddd"
-          strokeWidth={1}
+          strokeWidth={1 / stageScale}
         />
       );
     }
-    for (
-      let j = -numLines * gridSize;
-      j <= numLines * gridSize;
-      j += gridSize
-    ) {
+    for (let j = -numLines * gridSize; j <= numLines * gridSize; j += gridSize) {
       gridLines.push(
         <Line
           key={`horizontal-${j}`}
           points={[-numLines * gridSize, j, numLines * gridSize, j]}
           stroke="#ddd"
-          strokeWidth={1}
+          strokeWidth={1 / stageScale}
         />
       );
     }
@@ -234,8 +213,6 @@ const BlueprintCanvas = () => {
             height={boundary.height}
             draggable
             onDragMove={handleBlueprintDrag}
-            scaleX={stageScale}
-            scaleY={stageScale}
           />
         )}
 
@@ -246,35 +223,29 @@ const BlueprintCanvas = () => {
           width={boundary.width}
           height={boundary.height}
           stroke="green"
-          strokeWidth={2}
-          dash={[4, 4]}
-          draggable={false} // Disable dragging
+          strokeWidth={2 / stageScale}
+          dash={[4 / stageScale, 4 / stageScale]}
+          draggable={false}
           listening={false}
           onDragMove={handleBoundaryDrag}
-          scaleX={stageScale}
-          scaleY={stageScale}
         />
 
-        {/* Resize Handles */}
+        {/* Resize Handles - now properly scaled */}
         <Circle
           x={boundary.x}
           y={boundary.y}
-          radius={6}
+          radius={6 / stageScale}
           fill="green"
           draggable
           onDragMove={(e) => handleBoundaryResize(e, "topLeft")}
-          scaleX={stageScale}
-          scaleY={stageScale}
         />
         <Circle
           x={boundary.x + boundary.width}
           y={boundary.y + boundary.height}
-          radius={6}
+          radius={6 / stageScale}
           fill="green"
           draggable
           onDragMove={(e) => handleBoundaryResize(e, "bottomRight")}
-          scaleX={stageScale}
-          scaleY={stageScale}
         />
 
         {/* Devices */}
@@ -292,17 +263,15 @@ const BlueprintCanvas = () => {
                 <React.Fragment key={device.id}>
                   <Group
                     draggable
-                    x={device.x * 50 * stageScale}
-                    y={device.y * 50 * stageScale}
+                    x={device.x * 50}
+                    y={device.y * 50}
                     onClick={() => {
                       setSelectedDevice(device);
                     }}
                     onDragMove={(e) => handleDragMove(e, device.id)}
-                    scaleX={stageScale}
-                    scaleY={stageScale}
                   >
                     <KonvaImage
-                      x={-10} // Center relative to the group
+                      x={-10}
                       y={-10}
                       width={20}
                       height={20}

@@ -3,6 +3,7 @@ import { Button, Box, Typography, FormControlLabel, Checkbox, Switch, Divider, T
 import useDeviceStore from "./hooks/useDeviceStore";
 import FileUploader from "./FileUploader";
 import useLoadData from "./hooks/useLoadData";
+import { setToken } from "./../utils/token"; // Import setToken function
 
 const Controls = () => {
   const {
@@ -19,15 +20,15 @@ const Controls = () => {
     toggleTheme,
     boundary
   } = useDeviceStore();
-
   const [endX, setEndX] = useState("");
   const [endY, setEndY] = useState("");
-  const [boxSize, setBoxSize] = useState(4); // Initial box size
+  const [boxSize, setBoxSize] = useState(4);
+  const [tokenInput, setTokenInput] = useState(""); // State for token input
+  const { getAllDevices } = useLoadData(); // Get the function from hook
+  const [isLoading, setIsLoading] = useState(false);
 
-  // Automatically set the initial position when selectedDevice changes
   useEffect(() => {
     if (selectedDevice) {
-      // Set the initial position of the selected device
       setEndX(selectedDevice.x.toString());
       setEndY(selectedDevice.y.toString());
     }
@@ -86,9 +87,58 @@ const Controls = () => {
     setEndLocation({ x: parseFloat(endX), y: parseFloat(endY) });
   };
 
+  // Function to handle saving the token
+  const handleSaveToken = () => {
+    setToken(tokenInput); // Save the token using setToken function
+  };
+  const handleLoadDevices = async () => {
+    setIsLoading(true);
+    try {
+      const success = await getAllDevices();
+      if (success) {
+        console.log("Devices loaded successfully");
+      } else {
+        console.log("Failed to load devices");
+      }
+    } catch (error) {
+      console.error("Error:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+
   return (
     <Box sx={{ display: "flex", flexDirection: "column", gap: 2, p: 2, width: "25%", height: "100vh", overflowY: "auto" }}>
       <Typography variant="h5" sx={{ fontWeight: "bold", mb: 2 }}>Controls</Typography>
+      
+      {/* Added Token Input Section */}
+      <Typography variant="h6">API Token</Typography>
+      <TextField
+        label="Enter API Token"
+        value={tokenInput}
+        onChange={(e) => setTokenInput(e.target.value)}
+        fullWidth
+        type="password"
+      />
+      <Button 
+        variant="contained" 
+        color="primary" 
+        onClick={handleSaveToken}
+        fullWidth
+      >
+        Save Token
+      </Button>
+      <Button 
+        variant="contained" 
+        color="primary" 
+        onClick={handleLoadDevices}
+        fullWidth
+      >
+       Get Devices
+      </Button>
+      <Divider sx={{ my: 2 }} />
+
       <FileUploader />
       <Button variant="contained" color="primary" onClick={() => setOrigin()} fullWidth>
         Set Origin ({selectedDevice ? Number(selectedDevice.x).toFixed(2) : "0"},
