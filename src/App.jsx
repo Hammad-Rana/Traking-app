@@ -1,166 +1,224 @@
-import React, { useEffect, useState } from 'react'
-import { CognitoUserPool, CookieStorage } from 'amazon-cognito-identity-js'
+import React, { useEffect, useState } from "react";
 import { setToken, removeToken, getToken } from "./utils/token";
-///
 import { Box } from "@mui/material";
 import Controls from "./components/Controls";
 import BlueprintCanvas from "./components/BlueprintCanvas";
-///
-const userPool = new CognitoUserPool({
-  UserPoolId: "us-east-1_pFH9EAqyb",
-  ClientId: "13c45mooksb7g74o8kmk1rgb3n",
-  Storage: new CookieStorage({ domain: "localhost" })
-})
+
+const CLIENT_ID = "13c45mooksb7g74o8kmk1rgb3n";
+const COGNITO_DOMAIN = "https://us-east-1pfh9eaqyb.auth.us-east-1.amazoncognito.com";
+const REDIRECT_URI = window.location.origin;
+const TOKEN_URL = `${COGNITO_DOMAIN}/oauth2/token`;
+const LOGOUT_URL = `${COGNITO_DOMAIN}/logout?client_id=${CLIENT_ID}&logout_uri=${REDIRECT_URI}`;
+
+// Utility function to decode JWT
+const decodeJWT = (token) => {
+  try {
+    if (!token) return null;
+    const base64Url = token.split('.')[1];
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    return JSON.parse(window.atob(base64));
+  } catch (error) {
+    console.error("Error decoding JWT:", error);
+    return null;
+  }
+};
 
 const App = () => {
-  const [authState, setAuthState] = useState({ status: 'loading', user: null })
-
-  const handleAuthFlow = async () => {
-    try {
-      const urlParams = new URLSearchParams(window.location.search)
-      const code = urlParams.get('code')
-      
-      if (code) {
-        await handleAuthorizationCode(code)
-        window.history.replaceState({}, '', window.location.pathname)
-      } else {
-        await checkExistingSession()
-      }
-    } catch (error) {
-      console.error('Authentication error:', error)
-      setAuthState({ status: 'unauthenticated', user: null })
-    }
-  }
-
-  const handleAuthorizationCode = async (code) => {
-    try {
-      const tokenEndpoint = 'https://us-east-1pfh9eaqyb.auth.us-east-1.amazoncognito.com/oauth2/token';
-      const redirectUri = window.location.origin;
-      
-      const body = new URLSearchParams();
-      body.append('grant_type', 'authorization_code');
-      body.append('client_id', '13c45mooksb7g74o8kmk1rgb3n');
-      body.append('code', code);
-      body.append('redirect_uri', redirectUri);
-  
-      const response = await fetch(tokenEndpoint, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded'
-        },
-        body: body.toString()
-      });
-  
-      if (!response.ok) {
-        throw new Error('Failed to exchange authorization code for tokens');
-      }
-  
-      const tokens = await response.json();
-      setToken(tokens.access_token)
-      // Just log the tokens instead of storing them
-      console.log('Received tokens:', tokens.access_token);
-  
-      // Extract user information from the ID token
-      const idTokenPayload = JSON.parse(atob(tokens.id_token.split('.')[1]));
-      console.log('User information:', {
-        username: idTokenPayload['cognito:username'],
-        email: idTokenPayload.email
-      });
-  
-      // Update auth state
-      setAuthState({
-        status: 'authenticated',
-        user: {
-          username: idTokenPayload['cognito:username'],
-          email: idTokenPayload.email
-        }
-      });
-  
-      return true;
-    } catch (error) {
-      console.error('Error exchanging authorization code:', error);
-      setAuthState({ status: 'unauthenticated', user: null });
-      return false;
-    }
-  }
-
-  const checkExistingSession = () => {
-    return new Promise((resolve) => {
-      const cognitoUser = userPool.getCurrentUser()
-      
-      if (!cognitoUser) {
-        setAuthState({ status: 'unauthenticated', user: null })
-        resolve(false)
-        return
-      }
-
-      cognitoUser.getSession((err, session) => {
-        if (err || !session?.isValid?.()) {
-          setAuthState({ status: 'unauthenticated', user: null })
-          resolve(false)
-          return
-        }
-
-        const token = session.getIdToken().getJwtToken()
-        console.log('cognitoToken', token)
-        
-        setAuthState({
-          status: 'authenticated',
-          user: {
-            username: session.getIdToken().payload['cognito:username'],
-            email: session.getIdToken().payload.email
-          }
-        })
-        resolve(true)
-      })
-    })
-  }
+  const [authState, setAuthState] = useState({ 
+    status: "loading", 
+    user: null,
+    error: null
+  });
 
   useEffect(() => {
-    handleAuthFlow()
-  }, [])
+    handleAuthFlow();
+  }, []);
+
+  const handleAuthFlow = async () => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const code = urlParams.get("code");
+    const error = urlParams.get("error");
+
+    if (error) {
+      setAuthState({ 
+        status: "error", 
+        user: null,
+        error: error 
+      });
+      return;
+    }
+
+    if (code) {
+      await exchangeCodeForToken(code);
+    } else {
+      checkExistingSession();
+    }
+  };
+
+  const exchangeCodeForToken = async (code) => {
+    try {
+      const body = new URLSearchParams({
+        grant_type: "authorization_code",
+        client_id: CLIENT_ID,
+        code: code,
+        redirect_uri: REDIRECT_URI,
+      });
+
+      // Add client_secret if your app client requires it
+      // body.append("client_secret", "YOUR_CLIENT_SECRET");
+
+      const response = await fetch(TOKEN_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        body: body,
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to exchange authorization code");
+      }
+
+      const tokens = await response.json();
+      setToken(tokens.id_token); // Store ID token for user info
+
+      const idToken = decodeJWT(tokens.id_token);
+      const accessToken = decodeJWT(tokens.access_token);
+
+      if (!idToken?.email && !accessToken?.email) {
+        throw new Error("Email claim not found in tokens");
+      }
+
+      setAuthState({
+        status: "authenticated",
+        user: {
+          username: idToken["cognito:username"] || idToken.sub,
+          email: idToken.email || accessToken.email,
+          phone: idToken.phone_number,
+          name: idToken.name || idToken.given_name,
+        },
+        error: null
+      });
+
+      // Clean URL after successful auth
+      window.history.replaceState({}, "", window.location.pathname);
+
+    } catch (error) {
+      console.error("Authentication error:", error);
+      setAuthState({ 
+        status: "error", 
+        user: null,
+        error: error.message 
+      });
+    }
+  };
+
+  const checkExistingSession = () => {
+    const token = getToken();
+    if (token) {
+      const decoded = decodeJWT(token);
+      if (decoded && (decoded.email || decoded["cognito:username"])) {
+        setAuthState({
+          status: "authenticated",
+          user: {
+            username: decoded["cognito:username"] || decoded.sub,
+            email: decoded.email,
+            phone: decoded.phone_number,
+            name: decoded.name || decoded.given_name,
+          },
+          error: null
+        });
+        return;
+      }
+    }
+    setAuthState({ status: "unauthenticated", user: null, error: null });
+  };
 
   const handleLogin = () => {
-    const loginUrl = new URL('https://us-east-1pfh9eaqyb.auth.us-east-1.amazoncognito.com/login')
-    loginUrl.searchParams.append('client_id', '13c45mooksb7g74o8kmk1rgb3n')
-    loginUrl.searchParams.append('redirect_uri', window.location.origin)
-    loginUrl.searchParams.append('response_type', 'code')
-    loginUrl.searchParams.append('scope', 'email openid phone')
-    window.location.href = loginUrl.toString()
-  }
+    const scopes = [
+      'openid',
+      'email',
+      'profile',
+      'phone',
+      'aws.cognito.signin.user.admin'
+    ].join('+');
+    
+    window.location.href = `${COGNITO_DOMAIN}/login?` +
+      `client_id=${CLIENT_ID}&` +
+      `redirect_uri=${encodeURIComponent(REDIRECT_URI)}&` +
+      `response_type=code&` +
+      `scope=${scopes}`;
+  };
 
   const handleLogout = () => {
-    const cognitoUser = userPool.getCurrentUser()
-    cognitoUser?.signOut()
-    removeToken()
-    const loginUrl = new URL('https://us-east-1pfh9eaqyb.auth.us-east-1.amazoncognito.com/login')
-    loginUrl.searchParams.append('client_id', '13c45mooksb7g74o8kmk1rgb3n')
-    loginUrl.searchParams.append('redirect_uri', window.location.origin)
-    loginUrl.searchParams.append('response_type', 'code')
-    loginUrl.searchParams.append('scope', 'email openid phone')
-    window.location.href = loginUrl.toString()
+    removeToken();
+    window.location.href = LOGOUT_URL;
+  };
+
+  if (authState.status === "loading") {
+    return <div>Loading authentication state...</div>;
   }
 
-  if (authState.status === 'loading') {
-    return <div>Loading authentication state...</div>
+  if (authState.status === "error") {
+    return (
+      <div style={{ padding: 20 }}>
+        <h2>Authentication Error</h2>
+        <p>{authState.error}</p>
+        <button onClick={handleLogin}>Try Again</button>
+      </div>
+    );
   }
-console.log(authState,"authState")
-const tokenAuthenticated = getToken();
+
   return (
-    <>
-      {(authState.status === 'authenticated' || tokenAuthenticated) ? (
-         <>
-         <Controls />
-         <BlueprintCanvas />
-         <Box sx={{ position: "absolute", top: 10, right: 10 }}>
-           <button onClick={handleLogout}>Sign Out</button>
-         </Box>
-       </>
+    <div>
+      {authState.status === "authenticated" ? (
+        <Box
+          sx={{
+            display: "flex",
+            height: "100vh",
+            bgcolor: "#fff",
+            color: "#000",
+          }}
+        >
+          <Controls user={authState.user} />
+          <Box sx={{ flex: 1, overflow: "hidden" }}>
+            <BlueprintCanvas />
+          </Box>
+          <Box sx={{ position: "absolute", top: 10, right: 10 }}>
+            <div>Welcome, {authState.user?.name || authState.user?.email}</div>
+            <button onClick={handleLogout}>Sign Out</button>
+          </Box>
+        </Box>
       ) : (
-        <button onClick={handleLogin}>Sign In with Cognito</button>
+        <div style={{ 
+          display: "flex", 
+          justifyContent: "center", 
+          alignItems: "center", 
+          height: "100vh",
+          flexDirection: "column",
+          gap: "20px"
+        }}>
+          <h2>Please Sign In</h2>
+          <button 
+            onClick={handleLogin}
+            style={{
+              padding: "12px 24px",
+              fontSize: "16px",
+              backgroundColor: "#1976d2",
+              color: "white",
+              border: "none",
+              borderRadius: "4px",
+              cursor: "pointer",
+              fontWeight: "bold"
+            }}
+          >
+            Sign In with Cognito
+          </button>
+        </div>
       )}
-    </>
-  )
-}
+    </div>
+  );
+};
 
-export default App
+export default App;

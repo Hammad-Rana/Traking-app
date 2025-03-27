@@ -1,9 +1,19 @@
 import React, { useState, useEffect } from "react";
-import { Button, Box, Typography, FormControlLabel, Checkbox, Switch, Divider, TextField, Slider } from "@mui/material";
+import {
+  Button,
+  Box,
+  Typography,
+  FormControlLabel,
+  Checkbox,
+  Switch,
+  Divider,
+  TextField,
+  Slider,
+} from "@mui/material";
 import useDeviceStore from "./hooks/useDeviceStore";
 import FileUploader from "./FileUploader";
 import useLoadData from "./hooks/useLoadData";
-import { setToken } from "./../utils/token"; // Import setToken function
+import { setToken,getToken } from "./../utils/token"; // Import setToken function
 
 const Controls = () => {
   const {
@@ -18,7 +28,7 @@ const Controls = () => {
     selectedDevice,
     themeMode,
     toggleTheme,
-    boundary
+    boundary,
   } = useDeviceStore();
   const [endX, setEndX] = useState("");
   const [endY, setEndY] = useState("");
@@ -35,30 +45,37 @@ const Controls = () => {
   }, [selectedDevice]);
   const setOrigin = (newBoxSize = boxSize) => {
     if (!selectedDevice) return;
-  
+
     const baseX = selectedDevice.x;
     const baseY = selectedDevice.y;
-  
-    let cols = Math.ceil(Math.sqrt(devices.filter(d => d.type === "anchor").length)); // Grid columns
-    let rows = Math.ceil(devices.filter(d => d.type === "anchor").length / cols); // Grid rows
-  
+
+    let cols = Math.ceil(
+      Math.sqrt(devices.filter((d) => d.type === "anchor").length)
+    ); // Grid columns
+    let rows = Math.ceil(
+      devices.filter((d) => d.type === "anchor").length / cols
+    ); // Grid rows
+
     let usedPositions = new Set();
     usedPositions.add(`${baseX.toFixed(2)},${baseY.toFixed(2)}`); // Ensure selectedDevice stays in place
-  
+
     let index = 0;
-  
+
     const generateBoxPosition = () => {
       let x, y;
       do {
         x = baseX + (index % cols) * newBoxSize; // Move to the right
-        y = baseY + Math.floor(index / cols) * newBoxSize - (rows * newBoxSize) / 2; // Keep vertical centering
+        y =
+          baseY +
+          Math.floor(index / cols) * newBoxSize -
+          (rows * newBoxSize) / 2; // Keep vertical centering
         index++;
       } while (usedPositions.has(`${x.toFixed(2)},${y.toFixed(2)}`)); // Ensure unique position
-  
+
       usedPositions.add(`${x.toFixed(2)},${y.toFixed(2)}`);
       return { x, y };
     };
-  
+
     const updatedDevices = devices.map((device) => {
       if (device.id === selectedDevice.id) {
         return device; // Keep selectedDevice unchanged
@@ -71,11 +88,9 @@ const Controls = () => {
       }
       return device;
     });
-  
+
     setDevices(updatedDevices);
   };
-  
-  
 
   const handleBoxSizeChange = (event, newValue) => {
     setBoxSize(newValue);
@@ -91,6 +106,7 @@ const Controls = () => {
   const handleSaveToken = () => {
     setToken(tokenInput); // Save the token using setToken function
   };
+  console.log(getToken(),"getToken")
   const handleLoadDevices = async () => {
     setIsLoading(true);
     try {
@@ -107,11 +123,25 @@ const Controls = () => {
     }
   };
 
-
+  useEffect(() => {
+    handleLoadDevices();
+  }, []);
   return (
-    <Box sx={{ display: "flex", flexDirection: "column", gap: 2, p: 2, width: "25%", height: "100vh", overflowY: "auto" }}>
-      <Typography variant="h5" sx={{ fontWeight: "bold", mb: 2 }}>Controls</Typography>
-      
+    <Box
+      sx={{
+        display: "flex",
+        flexDirection: "column",
+        gap: 2,
+        p: 2,
+        width: "25%",
+        height: "100vh",
+        overflowY: "auto",
+      }}
+    >
+      <Typography variant="h5" sx={{ fontWeight: "bold", mb: 2 }}>
+        Controls
+      </Typography>
+
       {/* Added Token Input Section */}
       <Typography variant="h6">API Token</Typography>
       <TextField
@@ -121,30 +151,37 @@ const Controls = () => {
         fullWidth
         type="password"
       />
-      <Button 
-        variant="contained" 
-        color="primary" 
+      <Button
+        variant="contained"
+        color="primary"
         onClick={handleSaveToken}
         fullWidth
       >
         Save Token
       </Button>
-      <Button 
-        variant="contained" 
-        color="primary" 
+      <Button
+        variant="contained"
+        color="primary"
         onClick={handleLoadDevices}
         fullWidth
       >
-       Get Devices
+        Get Devices
       </Button>
       <Divider sx={{ my: 2 }} />
 
       <FileUploader />
-      <Button variant="contained" color="primary" onClick={() => setOrigin()} fullWidth>
-        Set Origin ({selectedDevice ? Number(selectedDevice.x).toFixed(2) : "0"},
-        {selectedDevice ? Number(selectedDevice.y).toFixed(2) : "0"})
+      <Button
+        variant="contained"
+        color="primary"
+        onClick={() => setOrigin()}
+        fullWidth
+      >
+        Set Origin ({selectedDevice ? Number(selectedDevice.x).toFixed(2) : "0"}
+        ,{selectedDevice ? Number(selectedDevice.y).toFixed(2) : "0"})
       </Button>
-      <Typography variant="h6" sx={{ mt: 2 }}>Anchor Spacing</Typography>
+      <Typography variant="h6" sx={{ mt: 2 }}>
+        Anchor Spacing
+      </Typography>
       <Slider
         value={boxSize}
         onChange={handleBoxSizeChange}
@@ -154,11 +191,32 @@ const Controls = () => {
         max={10}
         step={0.5}
       />
-      <FormControlLabel control={<Switch checked={themeMode === "dark"} onChange={toggleTheme} />} label="Dark Mode" />
+      <FormControlLabel
+        control={
+          <Switch checked={themeMode === "dark"} onChange={toggleTheme} />
+        }
+        label="Dark Mode"
+      />
       <Divider sx={{ my: 2 }} />
       <Typography variant="h6">Visibility</Typography>
-      <FormControlLabel control={<Checkbox checked={visibility.anchor} onChange={() => toggleVisibility("anchor")} />} label="Show Anchors" />
-      <FormControlLabel control={<Checkbox checked={visibility.tag} onChange={() => toggleVisibility("tag")} />} label="Show Tags" />
+      <FormControlLabel
+        control={
+          <Checkbox
+            checked={visibility.anchor}
+            onChange={() => toggleVisibility("anchor")}
+          />
+        }
+        label="Show Anchors"
+      />
+      <FormControlLabel
+        control={
+          <Checkbox
+            checked={visibility.tag}
+            onChange={() => toggleVisibility("tag")}
+          />
+        }
+        label="Show Tags"
+      />
       <Divider sx={{ my: 2 }} />
       {selectedDevice && (
         <Box>
@@ -166,7 +224,9 @@ const Controls = () => {
           <Typography>ID: {selectedDevice.id}</Typography>
           <Typography>Name: {selectedDevice.name}</Typography>
           <Typography>Type: {selectedDevice.type}</Typography>
-          <Typography>Position: ({selectedDevice.x}, {selectedDevice.y})</Typography>
+          <Typography>
+            Position: ({selectedDevice.x}, {selectedDevice.y})
+          </Typography>
           <TextField
             label="End X"
             type="number"
@@ -183,10 +243,22 @@ const Controls = () => {
             fullWidth
             sx={{ mt: 2 }}
           />
-          <Button variant="contained" color="primary" onClick={handleSetEndLocation} fullWidth sx={{ mt: 2 }}>
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={handleSetEndLocation}
+            fullWidth
+            sx={{ mt: 2 }}
+          >
             Set End Location
           </Button>
-          <Button variant="contained" color="secondary" onClick={moveTagToEndLocation} fullWidth sx={{ mt: 2 }}>
+          <Button
+            variant="contained"
+            color="secondary"
+            onClick={moveTagToEndLocation}
+            fullWidth
+            sx={{ mt: 2 }}
+          >
             Move Tag to End Location
           </Button>
         </Box>
