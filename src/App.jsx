@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from "react";
 import { setToken, removeToken, getToken } from "./utils/token";
-import { Box } from "@mui/material";
+import { Box, Button } from "@mui/material";
 import Controls from "./components/Controls";
 import BlueprintCanvas from "./components/BlueprintCanvas";
+import useDeviceStore from "./components/hooks/useDeviceStore";
 
 const CLIENT_ID = "13c45mooksb7g74o8kmk1rgb3n";
-const COGNITO_DOMAIN = "https://us-east-1pfh9eaqyb.auth.us-east-1.amazoncognito.com";
+const COGNITO_DOMAIN =
+  "https://us-east-1pfh9eaqyb.auth.us-east-1.amazoncognito.com";
 const REDIRECT_URI = window.location.origin;
 const TOKEN_URL = `${COGNITO_DOMAIN}/oauth2/token`;
 const LOGOUT_URL = `${COGNITO_DOMAIN}/logout?client_id=${CLIENT_ID}&logout_uri=${REDIRECT_URI}`;
@@ -14,8 +16,8 @@ const LOGOUT_URL = `${COGNITO_DOMAIN}/logout?client_id=${CLIENT_ID}&logout_uri=$
 const decodeJWT = (token) => {
   try {
     if (!token) return null;
-    const base64Url = token.split('.')[1];
-    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    const base64Url = token.split(".")[1];
+    const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
     return JSON.parse(window.atob(base64));
   } catch (error) {
     console.error("Error decoding JWT:", error);
@@ -24,12 +26,8 @@ const decodeJWT = (token) => {
 };
 
 const App = () => {
-  const [authState, setAuthState] = useState({ 
-    status: "loading", 
-    user: null,
-    error: null
-  });
-
+  const { authState, setAuthState } = useDeviceStore();
+  console.log(useDeviceStore(), "useDeviceStore()");
   useEffect(() => {
     handleAuthFlow();
   }, []);
@@ -40,10 +38,10 @@ const App = () => {
     const error = urlParams.get("error");
 
     if (error) {
-      setAuthState({ 
-        status: "error", 
+      setAuthState({
+        status: "error",
         user: null,
-        error: error 
+        error: error,
       });
       return;
     }
@@ -77,7 +75,9 @@ const App = () => {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to exchange authorization code");
+        throw new Error(
+          errorData.error || "Failed to exchange authorization code"
+        );
       }
 
       const tokens = await response.json();
@@ -98,18 +98,17 @@ const App = () => {
           phone: idToken.phone_number,
           name: idToken.name || idToken.given_name,
         },
-        error: null
+        error: null,
       });
 
       // Clean URL after successful auth
       window.history.replaceState({}, "", window.location.pathname);
-
     } catch (error) {
       console.error("Authentication error:", error);
-      setAuthState({ 
-        status: "error", 
+      setAuthState({
+        status: "error",
         user: null,
-        error: error.message 
+        error: error.message,
       });
     }
   };
@@ -127,7 +126,7 @@ const App = () => {
             phone: decoded.phone_number,
             name: decoded.name || decoded.given_name,
           },
-          error: null
+          error: null,
         });
         return;
       }
@@ -137,14 +136,15 @@ const App = () => {
 
   const handleLogin = () => {
     const scopes = [
-      'openid',
-      'email',
-      'profile',
-      'phone',
-      'aws.cognito.signin.user.admin'
-    ].join('+');
-    
-    window.location.href = `${COGNITO_DOMAIN}/login?` +
+      "openid",
+      "email",
+      "profile",
+      "phone",
+      "aws.cognito.signin.user.admin",
+    ].join("+");
+
+    window.location.href =
+      `${COGNITO_DOMAIN}/login?` +
       `client_id=${CLIENT_ID}&` +
       `redirect_uri=${encodeURIComponent(REDIRECT_URI)}&` +
       `response_type=code&` +
@@ -152,8 +152,18 @@ const App = () => {
   };
 
   const handleLogout = () => {
+    setAuthState({
+      status: "",
+      user: null,
+      error: null,
+    });
     removeToken();
-    window.location.href = LOGOUT_URL;
+    window.location.href =
+      `${COGNITO_DOMAIN}/login?` +
+      `client_id=${CLIENT_ID}&` +
+      `redirect_uri=${encodeURIComponent(REDIRECT_URI)}&` +
+      `response_type=code&` +
+      `scope=${scopes}`;
   };
 
   if (authState.status === "loading") {
@@ -186,21 +196,24 @@ const App = () => {
             <BlueprintCanvas />
           </Box>
           <Box sx={{ position: "absolute", top: 10, right: 10 }}>
-            <div>Welcome, {authState.user?.name || authState.user?.email}</div>
-            <button onClick={handleLogout}>Sign Out</button>
+            <Button variant="contained" color="primary" onClick={handleLogout}>
+              Sign Out
+            </Button>
           </Box>
         </Box>
       ) : (
-        <div style={{ 
-          display: "flex", 
-          justifyContent: "center", 
-          alignItems: "center", 
-          height: "100vh",
-          flexDirection: "column",
-          gap: "20px"
-        }}>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            height: "100vh",
+            flexDirection: "column",
+            gap: "20px",
+          }}
+        >
           <h2>Please Sign In</h2>
-          <button 
+          <button
             onClick={handleLogin}
             style={{
               padding: "12px 24px",
@@ -210,7 +223,7 @@ const App = () => {
               border: "none",
               borderRadius: "4px",
               cursor: "pointer",
-              fontWeight: "bold"
+              fontWeight: "bold",
             }}
           >
             Sign In with Cognito

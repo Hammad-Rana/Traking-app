@@ -18,6 +18,7 @@ import { setToken,getToken } from "./../utils/token"; // Import setToken functio
 const Controls = () => {
   const {
     endLocation,
+    authState,
     setEndLocation,
     moveTagToEndLocation,
     setZoomLevel,
@@ -106,7 +107,6 @@ const Controls = () => {
   const handleSaveToken = () => {
     setToken(tokenInput); // Save the token using setToken function
   };
-  console.log(getToken(),"getToken")
   const handleLoadDevices = async () => {
     setIsLoading(true);
     try {
@@ -138,12 +138,15 @@ const Controls = () => {
         overflowY: "auto",
       }}
     >
+       <div>Welcome, {authState.user?.name || authState.user?.email}</div>
+      <Divider sx={{ my: 2 }} />
+
       <Typography variant="h5" sx={{ fontWeight: "bold", mb: 2 }}>
         Controls
       </Typography>
 
       {/* Added Token Input Section */}
-      <Typography variant="h6">API Token</Typography>
+      {/* <Typography variant="h6">API Token</Typography>
       <TextField
         label="Enter API Token"
         value={tokenInput}
@@ -158,16 +161,15 @@ const Controls = () => {
         fullWidth
       >
         Save Token
-      </Button>
-      <Button
+      </Button> */}
+      {/* <Button
         variant="contained"
         color="primary"
         onClick={handleLoadDevices}
         fullWidth
       >
         Get Devices
-      </Button>
-      <Divider sx={{ my: 2 }} />
+      </Button> */}
 
       <FileUploader />
       <Button
