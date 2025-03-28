@@ -157,7 +157,7 @@ const App = () => {
       user: null,
       error: null,
     });
-    removeToken();
+    // removeToken();
     window.location.href =
       `${COGNITO_DOMAIN}/login?` +
       `client_id=${CLIENT_ID}&` +
